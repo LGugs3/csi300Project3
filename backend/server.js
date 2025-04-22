@@ -26,13 +26,14 @@ app.post('/login', (req, res) => {
   
   
 // CRUD endpoints for Category
-app.get('/categories', (req, res) => {
-  db.all('SELECT * FROM Category', [], (err, rows) => res.json(rows));
+app.get('/students', (req, res) => {
+  db.all('SELECT * FROM Students', [], (err, rows) => res.json(rows));
 });
 
-app.post('/categories', (req, res) => {
-  const { category_name } = req.body;
-  db.run('INSERT INTO Category (category_name) VALUES (?)', [category_name], function(err) {
+app.post('/students', (req, res) => {
+  const { firstName, lastName, email, major, gradYear } = req.body;
+  db.run('INSERT INTO Students (FirstName, LastName, Email, Major, GradYear) VALUES (?, ?, ?, ?, ?)',
+    [firstName, lastName, email, major, gradYear], function(err) {
     res.json({ id: this.lastID });
   });
 });

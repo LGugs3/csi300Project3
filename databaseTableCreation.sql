@@ -1,0 +1,81 @@
+-- CREATE SCHEMA school;
+
+CREATE TABLE Students(
+StudentID INT PRIMARY KEY AUTO_INCREMENT,
+FirstName VARCHAR(50),
+LastName VARCHAR(50),
+Email VARCHAR(50),
+Major VARCHAR(50),
+GradYear YEAR
+);
+
+CREATE TABLE Courses(
+CourseID INT PRIMARY KEY AUTO_INCREMENT,
+CoursePrefix VARCHAR(3),
+CourseNumber VARCHAR(3),
+CourseSection VARCHAR(3),
+CourseRoom VARCHAR(30),
+StartTime TIME,
+ClassDays VARCHAR(4)
+);
+
+CREATE TABLE GradeTypes(
+GradeTypeID INT PRIMARY KEY AUTO_INCREMENT,
+GradeType VARCHAR(20)
+);
+
+CREATE TABLE StudentCourses(
+StudentID INT NOT NULL,
+CourseID INT NOT NULL,
+
+CONSTRAINT pk_StudentCourses
+	PRIMARY KEY(StudentID, CourseID),
+
+CONSTRAINT fk_studentID
+	FOREIGN KEY (StudentID)
+    REFERENCES Students(StudentID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+CONSTRAINT fk_Courses
+	FOREIGN KEY (CourseID)
+    REFERENCES Courses(CourseID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
+CREATE TABLE Grades(
+GradeID INT PRIMARY KEY AUTO_INCREMENT,
+CourseID INT NOT NULL,
+GradeTypeID INT NOT NULL,
+Grade INT,
+
+CONSTRAINT fk_CourseID
+	FOREIGN KEY (CourseID)
+    REFERENCES Courses(CourseID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+CONSTRAINT fk_GradeType
+	FOREIGN KEY (GradeTypeID)
+    REFERENCES GradeTypes(GradeTypeID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
+CREATE TABLE StudentGrades(
+StudentID INT NOT NULL,
+GradeID INT NOT NULL,
+
+CONSTRAINT pk_StudentGrades
+	PRIMARY KEY(StudentID, GradeID),
+    
+CONSTRAINT fk_StudentID
+	FOREIGN KEY (StudentID)
+    REFERENCES Students(StudentID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+CONSTRAINT fk_GradeID
+	FOREIGN KEY (GradeID)
+    REFERENCES Grades(GradeID)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
