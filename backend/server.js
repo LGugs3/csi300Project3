@@ -103,5 +103,32 @@ app.get('/courses', (req, res) => {
     });
   });
   
+  //-----------------------------------StudentCourses-----------------
+  //get all courses for one student
+  app.get('/studentcourses/:id', (req, res) => {
+    db.run(`SELECT c.*
+      FROM Students s
+      INNER JOIN StudentCourses sc ON s.StudentID = sc.StudentID
+      INNER JOIN Courses c ON sc.CourseID = c.CourseID
+      WHERE s.StudentID = ?`), [req.params.id],
+      function(err, rows) {
+        if (err) return res.status(500).json(err);
+        res.json(rows)
+      }
+  });
+
+  //add course for one student
+  app.post('/studentcourses/', (req, res) => {
+    const { studentID, courseID } = req.body;
+    db.run('INSERT OR IGNORE INTO StudentCourses(StudentID, CourseID) Values(?, ?)', [studentID, courseID],
+      function(err) {
+        if (err) return res.json(500),json(err);
+        res.json({id: this.lastID});
+      }
+    )
+  });
+
+  //delete course for one student
+  app.delete('/studentcourses/:sid:cid')
 
 app.listen(5000, () => console.log('Backend running on port 5000'));
