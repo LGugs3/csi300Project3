@@ -26,10 +26,14 @@ app.post('/login', (req, res) => {
   
   
 // CRUD endpoints for Category
+
+//----------------------STUDENTS---------------------------------------------
+//get all students
 app.get('/students', (req, res) => {
   db.all('SELECT * FROM Students', [], (err, rows) => res.json(rows));
 });
 
+//add new student
 app.post('/students', (req, res) => {
   const { firstName, lastName, email, major, gradYear } = req.body;
   db.run('INSERT INTO Students (FirstName, LastName, Email, Major, GradYear) VALUES (?, ?, ?, ?, ?)',
@@ -38,15 +42,11 @@ app.post('/students', (req, res) => {
   });
 });
 
-// Add update/delete if needed...
-
-// Repeat for Product table...
-
-// UPDATE Category
-app.put('/categories/:id', (req, res) => {
-    const { category_name } = req.body;
-    db.run('UPDATE Category SET category_name = ? WHERE category_id = ?', 
-      [category_name, req.params.id], 
+// update existing student
+app.put('/students/:id', (req, res) => {
+    const { firstName, lastName, email, major, gradYear } = req.body;
+    db.run('UPDATE Students SET FirstName = ?, LastName = ?, Email = ?, Major = ?, GradYear = ? WHERE StudentID = ?', 
+      [firstName, lastName, email, major, gradYear, req.params.id],
       function(err) {
         if (err) return res.status(500).json(err);
         res.json({ updated: this.changes });
@@ -54,27 +54,28 @@ app.put('/categories/:id', (req, res) => {
     );
   });
   
-  // DELETE Category
-  app.delete('/categories/:id', (req, res) => {
-    db.run('DELETE FROM Category WHERE category_id = ?', [req.params.id], function(err) {
+  // delete student
+  app.delete('/students/:id', (req, res) => {
+    db.run('DELETE FROM Students WHERE StudentID = ?', [req.params.id], function(err) {
       if (err) return res.status(500).json(err);
       res.json({ deleted: this.changes });
     });
   });
   
-  // GET all Products
-app.get('/products', (req, res) => {
-    db.all('SELECT * FROM Product', [], (err, rows) => {
+  //------------------------Courses--------------------------
+  // GET all courses
+app.get('/courses', (req, res) => {
+    db.all('SELECT * FROM Courses', [], (err, rows) => {
       if (err) return res.status(500).json(err);
       res.json(rows);
     });
   });
   
-  // ADD Product
-  app.post('/products', (req, res) => {
-    const { product_name, price, category_id } = req.body;
-    db.run('INSERT INTO Product (product_name, price, category_id) VALUES (?, ?, ?)', 
-      [product_name, price, category_id], 
+  // ADD Course
+  app.post('/courses', (req, res) => {
+    const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
+    db.run('INSERT INTO Product (CoursePrefix, CourseNumber, CourseSection, CourseRoom, StartTime, ClassDays) VALUES (?, ?, ?, ?, ?, ?)', 
+      [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays], 
       function(err) {
         if (err) return res.status(500).json(err);
         res.json({ id: this.lastID });
@@ -82,11 +83,11 @@ app.get('/products', (req, res) => {
     );
   });
   
-  // UPDATE Product
-  app.put('/products/:id', (req, res) => {
-    const { product_name, price, category_id } = req.body;
-    db.run('UPDATE Product SET product_name = ?, price = ?, category_id = ? WHERE product_id = ?', 
-      [product_name, price, category_id, req.params.id], 
+  // UPDATE existing course
+  app.put('/courses/:id', (req, res) => {
+    const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
+    db.run('UPDATE Product SET CoursePrefix = ?, CourseNumber = ?, CourseSection = ?, CourseRoom = ?, StartTime = ?, ClassDays = ? WHERE product_id = ?', 
+      [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays, req.params.id], 
       function(err) {
         if (err) return res.status(500).json(err);
         res.json({ updated: this.changes });
@@ -94,9 +95,9 @@ app.get('/products', (req, res) => {
     );
   });
   
-  // DELETE Product
-  app.delete('/products/:id', (req, res) => {
-    db.run('DELETE FROM Product WHERE product_id = ?', [req.params.id], function(err) {
+  // DELETE course
+  app.delete('/courses/:id', (req, res) => {
+    db.run('DELETE FROM Courses WHERE CourseID = ?', [req.params.id], function(err) {
       if (err) return res.status(500).json(err);
       res.json({ deleted: this.changes });
     });
