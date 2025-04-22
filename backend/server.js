@@ -74,7 +74,7 @@ app.get('/courses', (req, res) => {
   // ADD Course
   app.post('/courses', (req, res) => {
     const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
-    db.run('INSERT INTO Product (CoursePrefix, CourseNumber, CourseSection, CourseRoom, StartTime, ClassDays) VALUES (?, ?, ?, ?, ?, ?)', 
+    db.run('INSERT INTO Courses (CoursePrefix, CourseNumber, CourseSection, CourseRoom, StartTime, ClassDays) VALUES (?, ?, ?, ?, ?, ?)', 
       [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays], 
       function(err) {
         if (err) return res.status(500).json(err);
@@ -86,7 +86,7 @@ app.get('/courses', (req, res) => {
   // UPDATE existing course
   app.put('/courses/:id', (req, res) => {
     const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
-    db.run('UPDATE Product SET CoursePrefix = ?, CourseNumber = ?, CourseSection = ?, CourseRoom = ?, StartTime = ?, ClassDays = ? WHERE product_id = ?', 
+    db.run('UPDATE Courses SET CoursePrefix = ?, CourseNumber = ?, CourseSection = ?, CourseRoom = ?, StartTime = ?, ClassDays = ? WHERE CourseID = ?', 
       [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays, req.params.id], 
       function(err) {
         if (err) return res.status(500).json(err);
@@ -106,15 +106,15 @@ app.get('/courses', (req, res) => {
   //-----------------------------------StudentCourses-----------------
   //get all courses for one student
   app.get('/studentcourses/:id', (req, res) => {
-    db.run(`SELECT c.*
+    db.all(`SELECT c.*
       FROM Students s
       INNER JOIN StudentCourses sc ON s.StudentID = sc.StudentID
       INNER JOIN Courses c ON sc.CourseID = c.CourseID
-      WHERE s.StudentID = ?`), [req.params.id],
+      WHERE s.StudentID = ?`, [req.params.id],
       function(err, rows) {
         if (err) return res.status(500).json(err);
         res.json(rows)
-      }
+      });
   });
 
   //add course for one student
@@ -125,10 +125,90 @@ app.get('/courses', (req, res) => {
         if (err) return res.json(500),json(err);
         res.json({id: this.lastID});
       }
-    )
+    );
   });
 
   //delete course for one student
-  app.delete('/studentcourses/:sid:cid')
+  app.delete('/studentcourses/:sid&:cid', (req, res) => {
+    db.run('DELETE FROM StudentCourses WHERE StudentID = ? AND CourseID = ?',
+    [req.params.sid, req.params.cid],
+    function(err) {
+      if (err) return res.status(500).json(err);
+      res.json({ deleted: this.changes });
+    });
+  });
+
+  //update course for existing student
+  app.put('/studentcourses/:sid&:cid', (req, res) => {
+    const { newCID } = req.body;
+    db.run('UPDATE StudentCourses SET CourseID = ? WHERE StudentID = ? AND CourseID = ?',
+    [newCID, req.params.sid, req.params.cid],
+    function(err) {
+      if (err) return res.status(500).json(err);
+      res.json({ updated: this.changes });
+    });
+  });
+
+  //-----------------------Grades----------------------------
+  //get grades for one student
+  app.get('/grades/:sid', (req, res) => {
+    db.all(`SELECT g.*
+      FROM Students s
+      INNER JOIN StudentGrades sg ON s.StudentID = sg.StudentID
+      INNER JOIN Grades g ON sg.GradeID = g.GradeID
+      INNER JOIN GradeTypes gt ON g.GradeTypeID = gt.GradeTypeID
+      WHERE s.StudentID = ?
+    `,
+    [req.params.sid],
+    function(err, rows) {
+      if (err) return res.status(500).json(err);
+      res.json(rows)
+    });
+  });
+
+  //add grade for one student
+  app.post('/grades/', (req, res) => {
+    const { sid, courseID, gradeTypeID, grade} = req.body;
+    //add new grade
+    db.run(`INSERT INTO Grades (CourseID, GradeTypeID, Grade) VALUES(?, ?, ?)`,
+      [courseID, gradeTypeID, grade],
+      function(err) {
+        if (err) return res.json(500),json(err);
+        res.json({id: this.lastID});
+      }
+    );
+
+    //add grade to junction table
+    db.run(`INSERT OR IGNORE INTO StudentGrades(StudentID, GradeID) VALUES(?, SELECT MAX(GradeID) FROM Grades)`,
+      [sid],
+      function(err) {
+        if (err) return res.json(500),json(err);
+        res.json({id: this.lastID});
+      }
+    );
+  });
+
+  //update existing grade for one student
+  app.put('/grades/:gid', (req, res) => {
+    const {courseID, gradeTypeID, grade} = req.body;
+    db.run(`UPDATE Grades SET CourseID = ?, GradeTypeID = ?, Grade = ? WHERE GradeID = ?`,
+      [courseID, gradeTypeID, grade, req.params.gid],
+      function(err) {
+        if (err) return res.status(500).json(err);
+        res.json({ updated: this.changes });
+      }
+    );
+  });
+
+  //delete grade for one student
+  app.delete('grades/:sid&:gid', (req, res) => {
+    db.run(`DELETE FROM StudentGrades WHERE StudentID = ? AND GradeID = ?`,
+      [req.params.sid, req.params.gid],
+      function(err) {
+        if (err) return res.status(500).json(err);
+        res.json({ deleted: this.changes });
+      }
+    );
+  });
 
 app.listen(5000, () => console.log('Backend running on port 5000'));

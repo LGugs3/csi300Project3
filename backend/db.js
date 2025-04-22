@@ -40,12 +40,10 @@ db.run(`CREATE TABLE IF NOT EXISTS StudentCourses(
 
     FOREIGN KEY (StudentID)
       REFERENCES Students(StudentID)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
+      ON UPDATE CASCADE,
     FOREIGN KEY (CourseID)
       REFERENCES Courses(CourseID)
       ON UPDATE CASCADE
-      ON DELETE CASCADE
     );`
   );
 
@@ -57,12 +55,10 @@ db.run(`CREATE TABLE IF NOT EXISTS StudentCourses(
 
     FOREIGN KEY (CourseID)
       REFERENCES Courses(CourseID)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
+      ON UPDATE CASCADE,
     FOREIGN KEY (GradeTypeID)
       REFERENCES GradeTypes(GradeTypeID)
       ON UPDATE CASCADE
-      ON DELETE CASCADE
     );`
   );
 
@@ -74,8 +70,7 @@ db.run(`CREATE TABLE IF NOT EXISTS StudentCourses(
 
     FOREIGN KEY (StudentID)
       REFERENCES Students(StudentID)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
+      ON UPDATE CASCADE,
     FOREIGN KEY (GradeID)
       REFERENCES Grades(GradeID)
       ON UPDATE CASCADE
