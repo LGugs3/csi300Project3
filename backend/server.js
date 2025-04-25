@@ -44,14 +44,14 @@ app.post('/students', (req, res) => {
 
 // update existing student
 app.put('/students/:id', (req, res) => {
-    const { firstName, lastName, email, major, gradYear } = req.body;
-    db.run('UPDATE Students SET FirstName = ?, LastName = ?, Email = ?, Major = ?, GradYear = ? WHERE StudentID = ?', 
-      [firstName, lastName, email, major, gradYear, req.params.id],
-      function(err) {
-        if (err) return res.status(500).json(err);
-        res.json({ updated: this.changes });
-      }
-    );
+  const reqData = req.body;
+  db.run('UPDATE Students SET FirstName = ?, LastName = ?, Email = ?, Major = ?, GradYear = ? WHERE StudentID = ?', 
+    [reqData.FirstName, reqData.LastName, reqData.Email, reqData.Major, reqData.GradYear, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json(err);
+      res.json({ updated: this.changes });
+    }
+  );
   });
   
   // delete student
@@ -73,6 +73,8 @@ app.get('/courses', (req, res) => {
   
   // ADD Course
   app.post('/courses', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
     db.run('INSERT INTO Courses (CoursePrefix, CourseNumber, CourseSection, CourseRoom, StartTime, ClassDays) VALUES (?, ?, ?, ?, ?, ?)', 
       [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays], 
@@ -85,6 +87,8 @@ app.get('/courses', (req, res) => {
   
   // UPDATE existing course
   app.put('/courses/:id', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const { coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays } = req.body;
     db.run('UPDATE Courses SET CoursePrefix = ?, CourseNumber = ?, CourseSection = ?, CourseRoom = ?, StartTime = ?, ClassDays = ? WHERE CourseID = ?', 
       [coursePrefix, courseNumber, courseSection, courseRoom, startTime, classDays, req.params.id], 
@@ -119,6 +123,8 @@ app.get('/courses', (req, res) => {
 
   //add course for one student
   app.post('/studentcourses', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const { studentID, courseID } = req.body;
     db.run('INSERT OR IGNORE INTO StudentCourses(StudentID, CourseID) Values(?, ?)', [studentID, courseID],
       function(err) {
@@ -140,6 +146,8 @@ app.get('/courses', (req, res) => {
 
   //update course for existing student
   app.put('/studentcourses/:sid&:cid', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const { newCID } = req.body;
     db.run('UPDATE StudentCourses SET CourseID = ? WHERE StudentID = ? AND CourseID = ?',
     [newCID, req.params.sid, req.params.cid],
@@ -168,6 +176,8 @@ app.get('/courses', (req, res) => {
 
   //add grade for one student
   app.post('/grades', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const { sid, courseID, gradeTypeID, grade} = req.body;
     //add new grade
     db.run(`INSERT INTO Grades (CourseID, GradeTypeID, Grade) VALUES(?, ?, ?)`,
@@ -190,6 +200,8 @@ app.get('/courses', (req, res) => {
 
   //update existing grade for one student
   app.put('/grades/:gid', (req, res) => {
+    const reqData = req.body;
+    //change params to reqData when form is created
     const {courseID, gradeTypeID, grade} = req.body;
     db.run(`UPDATE Grades SET CourseID = ?, GradeTypeID = ?, Grade = ? WHERE GradeID = ?`,
       [courseID, gradeTypeID, grade, req.params.gid],
