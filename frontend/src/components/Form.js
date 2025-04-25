@@ -15,7 +15,45 @@ export default function Form({ type, onSubmit, initialData = {}, categories = []
 
   return (
     <form onSubmit={handleSubmit}>
-      {type === 'category' ? (
+      {type === 'student' ? (
+        <>
+        <input
+          name="FirstName"
+          placeholder='First Name'
+          value={formData.FirstName || ''}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="LastName"
+          placeholder='Last Name'
+          value={formData.LastName || ''}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="Email"
+          placeholder='example@college.edu'
+          value={formData.Email || ''}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name='Major'
+          placeholder='Computer Science'
+          value={formData.Major || ''}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name='GradYear'
+          placeholder='20XX'
+          value={formData.GradYear || ''}
+          onChange={handleChange}
+          required
+        />
+        </>
+      ) : type === 'category' ? (
         <>
           <input
             name="category_name"
@@ -58,7 +96,8 @@ export default function Form({ type, onSubmit, initialData = {}, categories = []
           </select>
         </>
       )}
-      <button type="submit">{initialData?.category_id || initialData?.product_id ? 'Update' : 'Add'}</button>
+
+      <button type="submit">{initialData?.category_id || initialData?.product_id || initialData?.studentID ? 'Update' : 'Add'}</button>
     </form>
   );
 }

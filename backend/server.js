@@ -24,8 +24,7 @@ app.post('/login', (req, res) => {
   
   
   
-  
-// CRUD endpoints for Category
+
 
 //----------------------STUDENTS---------------------------------------------
 //get all students
@@ -35,9 +34,10 @@ app.get('/students', (req, res) => {
 
 //add new student
 app.post('/students', (req, res) => {
-  const { firstName, lastName, email, major, gradYear } = req.body;
-  db.run('INSERT INTO Students (FirstName, LastName, Email, Major, GradYear) VALUES (?, ?, ?, ?, ?)',
-    [firstName, lastName, email, major, gradYear], function(err) {
+  const reqData = req.body;
+  db.run('INSERT INTO Students (FirstName, LastName, Email, Major, GradYear) VALUES (?, ?, ?, ?, ?);',
+    [reqData.FirstName, reqData.LastName, reqData.Email, reqData.Major, reqData.GradYear], function(err) {
+      if (err) return res.status(500).json(err);
     res.json({ id: this.lastID });
   });
 });
@@ -111,14 +111,14 @@ app.get('/courses', (req, res) => {
       INNER JOIN StudentCourses sc ON s.StudentID = sc.StudentID
       INNER JOIN Courses c ON sc.CourseID = c.CourseID
       WHERE s.StudentID = ?`, [req.params.id],
-      function(err, rows) {
+      function(err, row) {
         if (err) return res.status(500).json(err);
-        res.json(rows)
+        res.json(row)
       });
   });
 
   //add course for one student
-  app.post('/studentcourses/', (req, res) => {
+  app.post('/studentcourses', (req, res) => {
     const { studentID, courseID } = req.body;
     db.run('INSERT OR IGNORE INTO StudentCourses(StudentID, CourseID) Values(?, ?)', [studentID, courseID],
       function(err) {
@@ -152,7 +152,7 @@ app.get('/courses', (req, res) => {
   //-----------------------Grades----------------------------
   //get grades for one student
   app.get('/grades/:sid', (req, res) => {
-    db.all(`SELECT g.*
+    db.get(`SELECT g.*
       FROM Students s
       INNER JOIN StudentGrades sg ON s.StudentID = sg.StudentID
       INNER JOIN Grades g ON sg.GradeID = g.GradeID
@@ -160,14 +160,14 @@ app.get('/courses', (req, res) => {
       WHERE s.StudentID = ?
     `,
     [req.params.sid],
-    function(err, rows) {
+    function(err, row) {
       if (err) return res.status(500).json(err);
-      res.json(rows)
+      res.json(row)
     });
   });
 
   //add grade for one student
-  app.post('/grades/', (req, res) => {
+  app.post('/grades', (req, res) => {
     const { sid, courseID, gradeTypeID, grade} = req.body;
     //add new grade
     db.run(`INSERT INTO Grades (CourseID, GradeTypeID, Grade) VALUES(?, ?, ?)`,

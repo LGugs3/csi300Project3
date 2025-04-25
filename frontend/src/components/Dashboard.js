@@ -9,13 +9,27 @@ export default function Dashboard({ isAdmin }) {
   const [editCategory, setEditCategory] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
 
+  const [students, setStudents] = useState([])
+  const [editStudent, setEditStudent] = useState(null)
+
+  const [editCourse, setEditCourse] = useState(null)
+  const [courses, setCourses] = useState([])
+
   const fetchData = () => {
-    fetch('http://localhost:5000/categories')
+    fetch('http://localhost:5000/students')
       .then(res => res.json())
-      .then(setCategories);
-    fetch('http://localhost:5000/products')
+      .then(setStudents)
+    fetch('http://localhost:5000/courses')
       .then(res => res.json())
-      .then(setProducts);
+      .then(setCourses)
+
+    //old stuff; delete later
+    // fetch('http://localhost:5000/categories')
+    //   .then(res => res.json())
+    //   .then(setCategories);
+    // fetch('http://localhost:5000/products')
+    //   .then(res => res.json())
+    //   .then(setProducts);
   };
 
   useEffect(() => {
@@ -52,6 +66,22 @@ export default function Dashboard({ isAdmin }) {
     fetchData();
   };
 
+  const addOrUpdateStudent = async (data) => {
+    const method = editStudent ? "PUT" : "POST"
+    const url = editStudent
+    ? `http://localhost:5000/students/${editStudent.studentID}`
+    : `http://localhost:5000/students`;
+
+    await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+
+    setEditStudent(null);
+    fetchData();
+  }
+
   const deleteCategory = async (id) => {
     await fetch(`http://localhost:5000/categories/${id}`, { method: 'DELETE' });
     fetchData();
@@ -59,6 +89,11 @@ export default function Dashboard({ isAdmin }) {
 
   const deleteProduct = async (id) => {
     await fetch(`http://localhost:5000/products/${id}`, { method: 'DELETE' });
+    fetchData();
+  };
+
+  const deleteStudent = async(id) => {
+    await fetch(`http://localhost:5000/students/${id}`, { method: 'DELETE' });
     fetchData();
   };
 
@@ -73,6 +108,45 @@ export default function Dashboard({ isAdmin }) {
 
   return (
     <div>
+      <h2>Students</h2>
+      {isAdmin && (
+        <Form
+          type="student"
+          onSubmit={addOrUpdateStudent}
+          initialData={editStudent || {}}
+        />
+      )}
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Major</th>
+            <th>Grad Year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map(stu => (
+            <tr key={stu.StudentID}>
+              <td>{stu.StudentID}</td>
+              <td>{stu.FirstName}</td>
+              <td>{stu.LastName}</td>
+              <td>{stu.Email}</td>
+              <td>{stu.Major}</td>
+              <td>{stu.GradYear}</td>
+              {isAdmin && (
+                <td>
+                  <button onClick={() => setEditStudent(stu)}>Edit</button>
+                  <button onClick={() => deleteStudent(stu.StudentID)}>Delete</button>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
       <h2>Categories</h2>
       {isAdmin && (
         <Form
