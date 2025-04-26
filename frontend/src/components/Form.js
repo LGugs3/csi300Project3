@@ -85,10 +85,9 @@ export default function Form({ type, onSubmit, initialData = {} }) {
             required
           />
           <input
-            name="EndTime"
-            type="time"
-            placeholder="End Time"
-            value={formData.EndTime || ''}
+            name="ClassDays"
+            placeholder="MTh | W | TF"
+            value={formData.ClassDays || ''}
             onChange={handleChange}
             required
           />

@@ -51,7 +51,7 @@ export default function Dashboard({ isAdmin }) {
     console.log("Course Data Submitted: ", data); // Check this
     const method = editCourse ? 'PUT' : 'POST';
     const url = editCourse
-      ? `http://localhost:5000/courses/${editCourse.course_id}`
+      ? `http://localhost:5000/courses/${editCourse.CourseID}`
       : 'http://localhost:5000/courses';
   
     await fetch(url, {
@@ -133,22 +133,22 @@ export default function Dashboard({ isAdmin }) {
             <th>Course Number</th>
             <th>Classroom</th>
             <th>Start Time</th>
-            <th>End Time</th>
+            <th>Class Days</th>
             {isAdmin && <th>Admin Actions</th>}
           </tr>
         </thead>
         <tbody>
           {courses.map(course => (
-            <tr key={course.CourseId}>
+            <tr key={course.CourseID}>
             <td>{course.CoursePrefix}</td>
             <td>{course.CourseNumber}</td>
             <td>{course.CourseRoom}</td>
             <td>{course.StartTime}</td>
-            <td>{course.EndTime}</td>            
+            <td>{course.ClassDays}</td>
             {isAdmin && (
               <td>
                 <button onClick={() => setEditCourse(course)}>Edit</button>
-                <button onClick={() => deleteCourse(course.CourseId)}>Delete</button>
+                <button onClick={() => deleteCourse(course.CourseID)}>Delete</button>
               </td>
             )}
             </tr>
