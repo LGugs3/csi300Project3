@@ -19,7 +19,7 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="App-header">
       <input
         placeholder="User ID"
         value={user}

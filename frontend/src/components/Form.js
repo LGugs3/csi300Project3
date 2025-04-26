@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function Form({ type, onSubmit, initialData = {}, categories = [] }) {
+export default function Form({ type, onSubmit, initialData = {} }) {
   const [formData, setFormData] = useState(initialData);
 
   const handleChange = (e) => {
@@ -17,87 +17,87 @@ export default function Form({ type, onSubmit, initialData = {}, categories = []
     <form onSubmit={handleSubmit}>
       {type === 'student' ? (
         <>
-        <input
-          name="FirstName"
-          placeholder='First Name'
-          value={formData.FirstName || ''}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="LastName"
-          placeholder='Last Name'
-          value={formData.LastName || ''}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="Email"
-          placeholder='example@college.edu'
-          value={formData.Email || ''}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name='Major'
-          placeholder='Computer Science'
-          value={formData.Major || ''}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name='GradYear'
-          placeholder='20XX'
-          value={formData.GradYear || ''}
-          onChange={handleChange}
-          required
-        />
+          <input
+            name="FirstName"
+            placeholder="First Name"
+            value={formData.FirstName || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="LastName"
+            placeholder="Last Name"
+            value={formData.LastName || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="Email"
+            placeholder="example@college.edu"
+            value={formData.Email || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="Major"
+            placeholder="Computer Science"
+            value={formData.Major || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="GradYear"
+            placeholder="20XX"
+            value={formData.GradYear || ''}
+            onChange={handleChange}
+            required
+          />
         </>
-      ) : type === 'category' ? (
+      ) : type === 'course' ? (
         <>
           <input
-            name="category_name"
-            placeholder="Category Name"
-            value={formData.category_name || ''}
-            onChange={handleChange}
-            required
-          />
-        </>
-      ) : (
-        <>
-          <input
-            name="product_name"
-            placeholder="Product Name"
-            value={formData.product_name || ''}
+            name="CoursePrefix"
+            placeholder="Course Prefix"
+            value={formData.CoursePrefix || ''}
             onChange={handleChange}
             required
           />
           <input
-            name="price"
-            type="number"
-            step="0.01"
-            placeholder="Price"
-            value={formData.price || ''}
+            name="CourseNumber"
+            placeholder="Course Number"
+            value={formData.CourseNumber || ''}
             onChange={handleChange}
             required
           />
-          <select
-            name="category_id"
-            value={formData.category_id || ''}
+          <input
+            name="CourseRoom"
+            placeholder="Classroom"
+            value={formData.CourseRoom || ''}
             onChange={handleChange}
             required
-          >
-            <option value="">Select Category</option>
-            {categories.map(cat => (
-              <option key={cat.category_id} value={cat.category_id}>
-                {cat.category_name}
-              </option>
-            ))}
-          </select>
+          />
+          <input
+            name="StartTime"
+            type="time"
+            placeholder="Start Time"
+            value={formData.StartTime || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
+            name="EndTime"
+            type="time"
+            placeholder="End Time"
+            value={formData.EndTime || ''}
+            onChange={handleChange}
+            required
+          />
         </>
-      )}
+      ) : null}
 
-      <button type="submit">{initialData?.category_id || initialData?.product_id || initialData?.studentID ? 'Update' : 'Add'}</button>
+      <button type="submit">
+        {(initialData?.studentID || initialData?.course_id) ? 'Update' : 'Add'}
+      </button>
     </form>
   );
 }
