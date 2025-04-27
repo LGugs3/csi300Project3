@@ -46,7 +46,7 @@ export default function Dashboard({ isAdmin }) {
     //console.log("Course Data Submitted: ", data); // Debug
     const method = editCourse ? 'PUT' : 'POST';
     const url = editCourse
-      ? `http://localhost:5000/courses/${editCourse.course_id}`
+      ? `http://localhost:5000/courses/${editCourse.CourseID}`
       : 'http://localhost:5000/courses';
     
     // Fixes case issues on course attributes
@@ -254,6 +254,7 @@ export default function Dashboard({ isAdmin }) {
         <tbody>
           {courses.map(course => (
             <tr key={course.CourseID}>
+<<<<<<< HEAD
             <td>{course.CourseID}</td>
             <td> {/* ================ Course Prefix ================ */}
               {editingRowId === course.CourseID ? (
@@ -346,6 +347,19 @@ export default function Dashboard({ isAdmin }) {
                   )}
                 </td>
               )}
+=======
+            <td>{course.CoursePrefix}</td>
+            <td>{course.CourseNumber}</td>
+            <td>{course.CourseRoom}</td>
+            <td>{course.StartTime}</td>
+            <td>{course.ClassDays}</td>
+            {isAdmin && (
+              <td>
+                <button onClick={() => setEditCourse(course)}>Edit</button>
+                <button onClick={() => deleteCourse(course.CourseID)}>Delete</button>
+              </td>
+            )}
+>>>>>>> 0e36296240083a1cca7e7c35e071bc3ed5c1e083
             </tr>
           ))}
         </tbody>
