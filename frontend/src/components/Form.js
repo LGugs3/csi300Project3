@@ -19,14 +19,14 @@ export default function Form({ type, onSubmit, initialData = {} }) {
         <>
           <input
             name="FirstName"
-            placeholder="First Name"
+            placeholder="John"
             value={formData.FirstName || ''}
             onChange={handleChange}
             required
           />
           <input
             name="LastName"
-            placeholder="Last Name"
+            placeholder="Doe"
             value={formData.LastName || ''}
             onChange={handleChange}
             required
@@ -57,21 +57,28 @@ export default function Form({ type, onSubmit, initialData = {} }) {
         <>
           <input
             name="CoursePrefix"
-            placeholder="Course Prefix"
+            placeholder="CSI"
             value={formData.CoursePrefix || ''}
             onChange={handleChange}
             required
           />
           <input
             name="CourseNumber"
-            placeholder="Course Number"
+            placeholder="300"
             value={formData.CourseNumber || ''}
             onChange={handleChange}
             required
           />
           <input
+            name="CourseSection"
+            placeholder="01"
+            value={formData.CourseSection || ''}
+            onChange={handleChange}
+            required
+          />
+          <input
             name="CourseRoom"
-            placeholder="Classroom"
+            placeholder="Joyce 201"
             value={formData.CourseRoom || ''}
             onChange={handleChange}
             required
@@ -79,16 +86,15 @@ export default function Form({ type, onSubmit, initialData = {} }) {
           <input
             name="StartTime"
             type="time"
-            placeholder="Start Time"
+            placeholder="10:00 AM"
             value={formData.StartTime || ''}
             onChange={handleChange}
             required
           />
           <input
-            name="EndTime"
-            type="time"
-            placeholder="End Time"
-            value={formData.EndTime || ''}
+            name="ClassDays"
+            placeholder="TF"
+            value={formData.ClassDays || ''}
             onChange={handleChange}
             required
           />
