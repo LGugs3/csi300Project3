@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function Form({ type, onSubmit, initialData = {} }) {
+export default function Form({ type, onSubmit, initialData = {}, students = [], courses = [], gradeTypes = [] }) {
   const [formData, setFormData] = useState(initialData);
 
   const handleChange = (e) => {
@@ -99,11 +99,119 @@ export default function Form({ type, onSubmit, initialData = {} }) {
             required
           />
         </>
+      ) : type === 'studentCourse' ? (
+        <>
+          <select
+            name="StudentID"
+            value={formData.StudentID || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Student</option>
+            {students.map(student => (
+              <option key={student.StudentID} value={student.StudentID}>
+                {student.FirstName} {student.LastName}
+              </option>
+            ))}
+          </select>
+          
+          <select
+            name="CourseID"
+            value={formData.CourseID || ''}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Course</option>
+            {courses.map(course => (
+              <option key={course.CourseID} value={course.CourseID}>
+                {course.CoursePrefix} {course.CourseNumber}-{course.CourseSection}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : type === 'grade' ? (
+        <>
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ marginRight: '10px' }}>Student:</label>
+            <select
+              name="StudentID"
+              value={formData.StudentID || ''}
+              onChange={handleChange}
+              required
+              style={{ padding: '5px', minWidth: '200px' }}
+            >
+              <option value="">-- Select Student --</option>
+              {students.map(student => (
+                <option key={student.StudentID} value={student.StudentID}>
+                  {student.FirstName} {student.LastName}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ marginRight: '10px' }}>Course:</label>
+            <select
+              name="CourseID"
+              value={formData.CourseID || ''}
+              onChange={handleChange}
+              required
+              style={{ padding: '5px', minWidth: '200px' }}
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map(course => (
+                <option key={course.CourseID} value={course.CourseID}>
+                  {course.CoursePrefix} {course.CourseNumber}-{course.CourseSection}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ marginRight: '10px' }}>Grade Type:</label>
+            <select
+              name="GradeTypeID"
+              value={formData.GradeTypeID || ''}
+              onChange={handleChange}
+              required
+              style={{ padding: '5px', minWidth: '200px' }}
+            >
+              <option value="">-- Select Grade Type --</option>
+              {gradeTypes.map(type => (
+                <option key={type.GradeTypeID} value={type.GradeTypeID}>
+                  {type.GradeType}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ marginRight: '10px' }}>Grade:</label>
+            <input
+              name="Grade"
+              type="number"
+              min="0"
+              max="100"
+              placeholder="Grade (0-100)"
+              value={formData.Grade || ''}
+              onChange={handleChange}
+              required
+              style={{ padding: '5px', width: '100px' }}
+            />
+          </div>
+        </>
       ) : null}
 
       <button type="submit">
-        {(initialData?.studentID || initialData?.course_id) ? 'Update' : 'Add'}
+      {initialData && (initialData.StudentID || initialData.CourseID || initialData.GradeID) 
+          ? 'Update' 
+          : 'Add'}
       </button>
+      {type === 'grade' && (
+        <button 
+          type="button" 
+          onClick={() => onSubmit(null)}>Cancel</button>
+      )}
     </form>
   );
 }

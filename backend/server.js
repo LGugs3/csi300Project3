@@ -167,7 +167,6 @@ app.get('/debug', (req, res) => {
       });
   });
 
-  // ADD course for one student
   // ADD course for one student - with section validation
   app.post('/studentcourses', (req, res) => {
     const { StudentID, CourseID } = req.body;
@@ -188,7 +187,7 @@ app.get('/debug', (req, res) => {
         
         // Now check if student is already enrolled in any section of this course
         db.all(`
-          SELECT c.* 
+          SELECT c.*
           FROM StudentCourses sc
           JOIN Courses c ON sc.CourseID = c.CourseID
           WHERE sc.StudentID = ? AND c.CoursePrefix = ? AND c.CourseNumber = ?`,
@@ -250,67 +249,110 @@ app.get('/debug', (req, res) => {
   //-----------------------Grades----------------------------
   //get grades for one student
   app.get('/grades/:sid', (req, res) => {
-    db.get(`SELECT g.*
+    db.all(`SELECT g.*
       FROM Students s
       INNER JOIN StudentGrades sg ON s.StudentID = sg.StudentID
       INNER JOIN Grades g ON sg.GradeID = g.GradeID
-      INNER JOIN GradeTypes gt ON g.GradeTypeID = gt.GradeTypeID
       WHERE s.StudentID = ?
     `,
     [req.params.sid],
-    function(err, row) {
+    function(err, rows) {
       if (err) return res.status(500).json(err);
-      res.json(row)
+      res.json(rows);
     });
   });
-
   //add grade for one student
-  app.post('/grades', (req, res) => {
-    const reqData = req.body;
-    //change params to reqData when form is created
-    const { sid, courseID, gradeTypeID, grade} = req.body;
-    //add new grade
-    db.run(`INSERT INTO Grades (CourseID, GradeTypeID, Grade) VALUES(?, ?, ?)`,
-      [courseID, gradeTypeID, grade],
-      function(err) {
-        if (err) return res.json(500),json(err);
-        res.json({id: this.lastID});
+  // In server.js
+app.post('/grades', (req, res) => {
+  console.log("Received grade data:", req.body); // Add debugging
+  const { sid, courseID, gradeTypeID, grade } = req.body;
+  
+  // First, add the grade
+  db.run(`INSERT INTO Grades (CourseID, GradeTypeID, Grade) VALUES(?, ?, ?)`,
+    [courseID, gradeTypeID, grade],
+    function(err) {
+      if (err) {
+        console.error("Error inserting grade:", err);
+        return res.status(500).json({ error: err.message });
       }
-    );
-
-    //add grade to junction table
-    db.run(`INSERT OR IGNORE INTO StudentGrades(StudentID, GradeID) VALUES(?, SELECT MAX(GradeID) FROM Grades)`,
-      [sid],
-      function(err) {
-        if (err) return res.json(500),json(err);
-        res.json({id: this.lastID});
-      }
-    );
-  });
+      
+      const gradeId = this.lastID;
+      
+      // Then link it to the student in the junction table
+      db.run(`INSERT INTO StudentGrades(StudentID, GradeID) VALUES(?, ?)`,
+        [sid, gradeId],
+        function(err) {
+          if (err) {
+            console.error("Error linking grade to student:", err);
+            return res.status(500).json({ error: err.message });
+          }
+          
+          res.json({ id: gradeId });
+        }
+      );
+    }
+  );
+});
 
   //update existing grade for one student
   app.put('/grades/:gid', (req, res) => {
-    const reqData = req.body;
-    //change params to reqData when form is created
-    const {courseID, gradeTypeID, grade} = req.body;
+    console.log("Updating grade:", req.params.gid);
+    console.log("Request body:", req.body);
+    
+    const { CourseID, GradeTypeID, Grade } = req.body;
+    
+    // Validate required fields
+    if (!CourseID || !GradeTypeID || Grade === undefined) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    
     db.run(`UPDATE Grades SET CourseID = ?, GradeTypeID = ?, Grade = ? WHERE GradeID = ?`,
-      [courseID, gradeTypeID, grade, req.params.gid],
+      [CourseID, GradeTypeID, Grade, req.params.gid],
       function(err) {
-        if (err) return res.status(500).json(err);
-        res.json({ updated: this.changes });
+        if (err) {
+          console.error("Error updating grade:", err);
+          return res.status(500).json({ error: err.message });
+        }
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ error: "Grade not found or no changes made" });
+        }
+        
+        res.json({ 
+          updated: this.changes,
+          message: "Grade updated successfully" 
+        });
       }
     );
   });
 
   //delete grade for one student
-  app.delete('grades/:sid&:gid', (req, res) => {
+  app.delete('/grades/:sid&:gid', (req, res) => {
     db.run(`DELETE FROM StudentGrades WHERE StudentID = ? AND GradeID = ?`,
       [req.params.sid, req.params.gid],
       function(err) {
         if (err) return res.status(500).json(err);
-        res.json({ deleted: this.changes });
+        
+        // After deleting the link in the junction table, now delete the grade itself
+        db.run(`DELETE FROM Grades WHERE GradeID = ?`,
+          [req.params.gid],
+          function(err) {
+            if (err) return res.status(500).json(err);
+            res.json({ deleted: this.changes });
+          }
+        );
       }
     );
+  });
+  
+
+  // ----------------------------Gradetypes-----------------------------
+
+  app.get('/gradetypes', (req, res) => {
+    db.all('SELECT * FROM GradeTypes', [], (err, rows) => {
+      if (err) return res.status(500).json(err);
+      res.json(rows);
+    });
   });
 
   // ---------------------------Debug----------------------------------

@@ -77,7 +77,38 @@ db.run(`CREATE TABLE IF NOT EXISTS StudentCourses(
       ON DELETE CASCADE
     );`
   );
-
+  
+db.get('SELECT COUNT(*) as count FROM GradeTypes', [], (err, row) => {
+    if (err) {
+      console.error('Error checking GradeTypes table:', err);
+      return;
+    }
+    
+    // Only seed if the table is empty
+    if (row.count === 0) {
+      const gradeTypes = [
+        'Quiz',
+        'Homework',
+        'Midterm Exam',
+        'Final Exam',
+        'Project',
+        'Participation',
+        'Lab Assignment'
+      ];
+      
+      // Use a prepared statement for efficient insertion
+      const stmt = db.prepare('INSERT INTO GradeTypes (GradeType) VALUES (?)');
+      
+      gradeTypes.forEach(type => {
+        stmt.run(type, (err) => {
+          if (err) console.error(`Error seeding grade type ${type}:`, err);
+        });
+      });
+      
+      stmt.finalize();
+      console.log('GradeTypes table seeded successfully');
+    }
+  });
 
   // db.run(`CREATE TABLE IF NOT EXISTS Category (
   //   category_id INTEGER PRIMARY KEY AUTOINCREMENT,
