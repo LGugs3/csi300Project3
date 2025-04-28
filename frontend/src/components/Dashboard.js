@@ -10,6 +10,10 @@ export default function Dashboard({ isAdmin }) {
   const [editCourse, setEditCourse] = useState(null)
   const [courses, setCourses] = useState([])
 
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [studentCourses, setStudentCourses] = useState([]);
+
   const [editingRowId, setEditingRowId] = useState(null);
   const [editingData, setEditingData] = useState({});
 
@@ -23,13 +27,109 @@ export default function Dashboard({ isAdmin }) {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (selectedStudent) {
+      fetch(`http://localhost:5000/studentcourses/${selectedStudent}`)
+        .then(res => res.json())
+        .then(data => {
+          setStudentCourses(data);
+        })
+        .catch(err => {
+          console.error("Error fetching student courses:", err);
+          setStudentCourses([]);
+        });
+    } else {
+      setStudentCourses([]);
+    }
+  }, [selectedStudent]); // Re-fetch whenever the selected student changes
+  
+  // Function to handle student selection from dropdown
+  const handleStudentSelect = (e) => {
+    const studentId = e.target.value ? parseInt(e.target.value, 10) : null;
+    setSelectedStudent(studentId);
+    setSelectedCourse(null); // Reset course selection when student changes
+  };
+
+ // Improved addStudentCourse function with better debugging
+const addStudentCourse = async () => {
+  if (!selectedStudent || !selectedCourse) {
+    console.error("Missing student or course selection");
+    return;
+  }
+  
+  try {
+    const data = {
+      StudentID: parseInt(selectedStudent, 10),
+      CourseID: parseInt(selectedCourse, 10)
+    };
+    
+    console.log("Sending enrollment data:", data);
+    
+    const response = await fetch('http://localhost:5000/studentcourses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    // Log the entire response for debugging
+    console.log("Server response status:", response.status);
+    
+    const responseData = await response.json();
+    console.log("Server response data:", responseData);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(responseData)}`);
+    }
+    
+    console.log("Enrollment successful, refreshing student courses...");
+    
+    // Reset the course selection but keep the student selected
+    setSelectedCourse(null);
+    
+    // Refresh the student's courses to show the new enrollment
+    const coursesResponse = await fetch(`http://localhost:5000/studentcourses/${selectedStudent}`);
+    
+    if (!coursesResponse.ok) {
+      throw new Error(`Error fetching updated courses: ${coursesResponse.status}`);
+    }
+    
+    const coursesData = await coursesResponse.json();
+    console.log("Updated student courses:", coursesData);
+    
+    setStudentCourses(coursesData);
+      
+  } catch (error) {
+    console.error("Error adding student to course:", error);
+    alert("Failed to enroll student in course: " + error.message);
+  }
+};
+
+  // Function to remove a student from a course
+  const deleteStudentCourse = async (studentId, courseId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/studentcourses/${studentId}&${courseId}`, { 
+        method: 'DELETE' 
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Refresh the student's courses to show the updated enrollments
+      fetch(`http://localhost:5000/studentcourses/${studentId}`)
+        .then(res => res.json())
+        .then(setStudentCourses)
+        .catch(err => console.error("Error refreshing student courses:", err));
+        
+    } catch (error) {
+      console.error("Error deleting student course:", error);
+      alert("Failed to remove student from course. Please try again.");
+    }
+  };
 
   const addOrUpdateStudent = async (data) => {
     const method = editStudent ? "PUT" : "POST"
     const url = editStudent
-    ? `http://localhost:5000/students/${editStudent.studentID}`
+    ? `http://localhost:5000/students/${editStudent.StudentID}`
     : `http://localhost:5000/students`;
 
     await fetch(url, {
@@ -43,29 +143,73 @@ export default function Dashboard({ isAdmin }) {
   }
 
   const addOrUpdateCourse = async (data) => {
-    //console.log("Course Data Submitted: ", data); // Debug
+    console.log("Course Data Submitted: ", data); // Debug
     const method = editCourse ? 'PUT' : 'POST';
     const url = editCourse
       ? `http://localhost:5000/courses/${editCourse.CourseID}`
       : 'http://localhost:5000/courses';
     
-    // Fixes case issues on course attributes
+    // Fixes case issues on course attributes - make sure we format before logging
     const formattedData = {
-      coursePrefix: data.CoursePrefix,
-      courseNumber: data.CourseNumber,
-      courseSection: data.CourseSection,
-      courseRoom: data.CourseRoom,  
-      startTime: data.StartTime,
-      classDays: data.ClassDays
+      CoursePrefix: data.CoursePrefix,
+      CourseNumber: parseInt(data.CourseNumber, 10), // Convert to number
+      CourseSection: parseInt(data.CourseSection, 10), // Convert to number
+      CourseRoom: data.CourseRoom,  
+      StartTime: data.StartTime,
+      ClassDays: data.ClassDays
+    };
+    
+    console.log("Formatted Course Data:", formattedData);
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formattedData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("Server response:", result);
+      
+      setEditCourse(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating course:", error);
+    }
+  };
+
+  const addOrUpdateStudentCourse = async (data) => {
+    // Convert string IDs to integers
+    const formattedData = {
+      StudentID: parseInt(data.StudentID, 10),
+      CourseID: parseInt(data.CourseID, 10)
     };
 
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formattedData),
-    });
-    setEditCourse(null);
-    fetchData();
+    console.log("Student Course Data:", formattedData);
+
+    try {
+      const response = await fetch('http://localhost:5000/studentcourses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Server response:", result);
+
+      // Update selected student to trigger a refetch
+      setSelectedStudent(formattedData.StudentID);
+    } catch (error) {
+      console.error("Error adding student course:", error);
+    }
   };
 
   // Deletes entry regardless of datatype through ternary operations
@@ -103,28 +247,69 @@ export default function Dashboard({ isAdmin }) {
       if (updatedData.CourseSection) {
         updatedData.CourseSection = parseInt(updatedData.CourseSection, 10);
       }
-      // You can add more validations here if necessary
+      
+      // DEBUGGING 
+      //console.log(`About to send PUT request to ${endpoint}/${id} with data:`, JSON.stringify(updatedData, null, 2));
     }
-  
+
     fetch(`http://localhost:5000/${endpoint}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updatedData),
-    })
-      .then(() => {
-        setEditingRowId(null); // Close edit mode
-        setEditingData({});
-        fetchData(); // Refresh the table to show the latest data
+    }).then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            console.error("Server error details:", errorData);
+            throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+          }).catch(e => {
+            throw new Error(`HTTP error! status: ${response.status}, could not parse error details`);
+          });
+        }
+        return response.json();
       })
-      .catch((error) => console.error("Error updating:", error));
+      .then(data => {
+        console.log("Update successful:", data);
+        setEditingRowId(null);
+        setEditingData({});
+        fetchData();
+      })
+      .catch((error) => {
+        console.error("Error updating:", error);
+        alert("Error updating: " + error.message);
+      }); 
+  }
+
+  const formatTime12Hour = (time24) => {
+    if (!time24) return '';
+    
+    // Parse the time string
+    const [hours, minutes] = time24.split(':').map(num => parseInt(num, 10));
+    
+    // Convert to 12-hour format
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12; // Convert 0 to 12 for midnight
+    
+    // Format with leading zeros for minutes
+    return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
-  
-  
+
   const cancelEdit = () => {
     setEditingRowId(null);
     setEditingData({});
   };
 
+  // Find student name by ID
+  const getStudentName = (studentId) => {
+    const student = students.find(s => s.StudentID === parseInt(studentId, 10));
+    return student ? `${student.FirstName} ${student.LastName}` : 'Unknown Student';
+  };
+
+  // Find course name by ID
+  const getCourseName = (courseId) => {
+    const course = courses.find(c => c.CourseID === parseInt(courseId, 10));
+    return course ? `${course.CoursePrefix} ${course.CourseNumber}-${course.CourseSection}` : 'Unknown Course';
+  };
+  
   return (
     <div>
       {/* Students */}
@@ -254,7 +439,6 @@ export default function Dashboard({ isAdmin }) {
         <tbody>
           {courses.map(course => (
             <tr key={course.CourseID}>
-<<<<<<< HEAD
             <td>{course.CourseID}</td>
             <td> {/* ================ Course Prefix ================ */}
               {editingRowId === course.CourseID ? (
@@ -347,23 +531,97 @@ export default function Dashboard({ isAdmin }) {
                   )}
                 </td>
               )}
-=======
-            <td>{course.CoursePrefix}</td>
-            <td>{course.CourseNumber}</td>
-            <td>{course.CourseRoom}</td>
-            <td>{course.StartTime}</td>
-            <td>{course.ClassDays}</td>
-            {isAdmin && (
-              <td>
-                <button onClick={() => setEditCourse(course)}>Edit</button>
-                <button onClick={() => deleteCourse(course.CourseID)}>Delete</button>
-              </td>
-            )}
->>>>>>> 0e36296240083a1cca7e7c35e071bc3ed5c1e083
             </tr>
           ))}
         </tbody>
       </table>
+
+     {/* Student Courses */}
+    <h2>Student Course Enrollment</h2>
+
+        {/* Student Dropdown */}
+        <select 
+          value={selectedStudent || ''}
+          onChange={handleStudentSelect}
+          style={{ padding: '5px', minWidth: '200px' }}
+        >
+          <option value="">-- Select a Student --</option>
+          {students.map(student => (
+            <option key={student.StudentID} value={student.StudentID}>
+              {student.FirstName} {student.LastName}
+            </option>
+          ))}
+        </select>
+        
+    {isAdmin && (
+      <div>
+
+        {/* Course Dropdown - Only enabled if a student is selected */}
+        <select 
+          id="courseSelect"
+          disabled={!selectedStudent}
+          value={selectedCourse || ''}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+          style={{ padding: '5px', minWidth: '200px' }}
+        >
+          <option value="">-- Select a Course --</option>
+          {courses.map(course => (
+            <option key={course.CourseID} value={course.CourseID}>
+              {course.CoursePrefix} {course.CourseNumber}-{course.CourseSection} ({course.ClassDays})
+            </option>
+          ))}
+        </select>
+
+        {/* Add Button - Only enabled if both student and course are selected */}
+        <button 
+          onClick={addStudentCourse}
+          disabled={!selectedStudent || !selectedCourse}>
+          Add Enrollment
+        </button>
+      </div>
+    )}
+
+    {/* Student Courses Table - Shows enrollment for selected student */}
+    <table border="1" cellPadding="6" style={{ marginBottom: '2em', width: '100%' }}>
+      <thead>
+        <tr>
+          <th>Course Prefix</th>
+          <th>Course Number</th>
+          <th>Section</th>
+          <th>Room</th>
+          <th>Time</th>
+          <th>Days</th>
+          {isAdmin && <th>Actions</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {selectedStudent && studentCourses.length > 0 ? (
+          studentCourses.map(course => (
+            <tr key={course.CourseID}>
+              <td>{course.CoursePrefix}</td>
+              <td>{course.CourseNumber}</td>
+              <td>{course.CourseSection}</td>
+              <td>{course.CourseRoom}</td>
+              <td>{formatTime12Hour(course.StartTime)}</td>
+              <td>{course.ClassDays}</td>
+              {isAdmin && (
+                <td>
+                  <button onClick={() => deleteStudentCourse(selectedStudent, course.CourseID)}>
+                    Delete
+                  </button>
+                </td>
+              )}
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '15px' }}>
+              {selectedStudent ? 'No courses enrolled' : 'Select a student to view their enrolled courses'}
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
     </div>
   );
 }

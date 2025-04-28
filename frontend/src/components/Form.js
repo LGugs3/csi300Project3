@@ -93,11 +93,7 @@ export default function Form({ type, onSubmit, initialData = {} }) {
           />
           <input
             name="ClassDays"
-<<<<<<< HEAD
-            placeholder="TF"
-=======
             placeholder="MTh | W | TF"
->>>>>>> 0e36296240083a1cca7e7c35e071bc3ed5c1e083
             value={formData.ClassDays || ''}
             onChange={handleChange}
             required
